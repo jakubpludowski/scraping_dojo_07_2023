@@ -1,5 +1,6 @@
 import requests,  re, json, orjsonl
 from bs4 import BeautifulSoup
+import sys
 
 url = 'http://quotes.toscrape.com/js-delayed/'
 filename = 'output.jsonl'
@@ -46,14 +47,17 @@ class Scrapper():
 
     def write_into_file(self):
         for row in self.data:
+            row = self.convert_data(row)
             previous = orjsonl.load(self.filename)
             previous.append(row)
             orjsonl.save(self.filename, previous)
 
     def perform_scrapping(self):
+        #creating new, empty file
         orjsonl.save(self.filename, [])
         self.get_json_data()
 
+    #Scrapping hyperlink to next page, checking if it is avaible and getting next url
     def check_if_there_is_next_page(self, soup):
         nav_tag = soup.find('nav')
         a_tag = nav_tag.find_all('a')
@@ -65,7 +69,16 @@ class Scrapper():
                 return True
         if self.verbose:
             print(f'There is no next page. Last page found: {self.page}')
-        return False    
+        return False 
+       
+    #formatting data into right formating
+    def convert_data(self, data):
+        new_data = {"text": data['text'],
+                    "by": data['author']['name'],
+                    "tags": data['tags']}
+        return new_data
+
+
         
 
 simple_scrapper = Scrapper(url,filename, verbose=True)
