@@ -1,21 +1,26 @@
-import requests,  re, json, orjsonl
+import requests,  os, json, orjsonl
 from bs4 import BeautifulSoup
-import sys
+from dotenv import load_dotenv, dotenv_values
 
-url = 'http://quotes.toscrape.com/js-delayed/'
-filename = 'output.jsonl'
+load_dotenv()
+proxy = os.getenv('PROXY')
+url = os.getenv('INPUT_URL')
+filename = os.getenv('OUTPUT_FILE')
+
 
 class Scrapper():
-    def __init__(self,url, filename, verbose=False):
+    def __init__(self,url, filename,proxy, verbose=False):
         self.url = url
         self.filename = filename
+        self.proxy = proxy
         self.page = 1
         self.next_page = ''
         self.base_path = url
         self.verbose = verbose
 
     def get_json_data(self):
-        response = requests.get(self.url)
+        response = requests.get(self.url) #Not sure why proxy is not working, so I am not using it
+        #response = requests.get(self.url, proxies=self.proxy)
         soup = BeautifulSoup(response.text, "html.parser")
         
         while True:
@@ -40,7 +45,8 @@ class Scrapper():
             
             #Update url, nr of pages and get next page's content
             self.url = self.next_page
-            response = requests.get(self.url)
+            response = requests.get(self.url) #Not sure why proxy is not working, so I am not using it
+            #response = requests.get(self.url, proxies=self.proxy)
             soup = BeautifulSoup(response.text, "html.parser")
             self.page +=1
 
@@ -80,7 +86,7 @@ class Scrapper():
 
 
         
-
-simple_scrapper = Scrapper(url,filename, verbose=True)
+# If you want to see logs, change verbose to True
+simple_scrapper = Scrapper(url,filename,proxy, verbose=False)
 simple_scrapper.perform_scrapping()
 
